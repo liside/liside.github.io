@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>SpeakQL</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+  <link rel="stylesheet" href="style/style.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+  <script src="js/recorder.js"></script>
+  <script src="js/controller.js"></script>
+</head>
+
+<body>
+  <nav aria-label="breadcrumb" role="navigation">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item active" aria-current="page">SpeakQL Home</li>
+    </ol>
+  </nav>
+
+  <div class="container">
+    <div class="jumbotron">
+      <div id="query-result">
+      </div>
+
+      <hr class="my-4">
+      <div class = "row justify-content-center">
+        <p class="lead">
+          <div id="audio-container"></div>
+        </p>
+      </div>
+      <div class = "row justify-content-center">
+        <p class="lead">
+          <button id="start" class="btn btn-primary btn-lg" disabled>Record</button>
+          <button id="stop" class="btn btn-danger btn-lg" disabled>Stop</button>
+        </p>
+      </div>
+    </div>
+
+  </div>
+</body>
+
+</html>
