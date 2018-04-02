@@ -201,17 +201,17 @@ $( document ).ready(() => {
     $( "#result-text" ).val( data["content"].join(" "));
   };
 
-  recognition.onstart = function() {
-    recognizing = true;
-  };
+  // recognition.onstart = function() {
+  //   recognizing = true;
+  // };
 
   recognition.onerror = function(event) {
     logs[counter]["events"].push(parseLog("ASR error"));
   };
 
-  recognition.onend = function() {
-    recognizing = false;
-  };
+  // recognition.onend = function() {
+  //   recognizing = false;
+  // };
 
   recognition.onresult = function(event) {
     let asrResult = [];
@@ -272,11 +272,6 @@ $( document ).ready(() => {
   };
 
   $( "#record-button" ).on("click", () => {
-    if (recognizing == true) {
-      recognizing = false;
-    } else {
-      recognizing = true;
-    }
     $( "#record-button" ).toggleClass("btn-success");
     $( "#record-button" ).toggleClass("btn-danger");
     if (recognizing) {
@@ -287,6 +282,7 @@ $( document ).ready(() => {
       recognition.stop();
       recorder.stop();
       $( "#record-button" ).text("Record")
+      recognizing = false;
     } else {
       logs[counter]["events"].push(parseLog("started recording"));
       let audio = document.querySelectorAll('audio');
@@ -297,7 +293,8 @@ $( document ).ready(() => {
       }
       recorder.start();
       recognition.start();
-      $( "#record-button" ).text("Listening....")
+      $( "#record-button" ).text("Listening....");
+      recognizing = true;
     }
   });
 
