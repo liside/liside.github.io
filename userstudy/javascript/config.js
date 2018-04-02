@@ -17,9 +17,9 @@ experimentConfig = {
       "complexity": "simple"
     }
   ],
-  "baseAPIEndpoint": "http://c220g1-031118.wisc.cloudlab.us:5050/",
-  "getQueryAPI": "http://c220g1-031118.wisc.cloudlab.us:5050/experiment_query",
-  "checkQueryAPI": "http://c220g1-031118.wisc.cloudlab.us:5050/check_correctness",
-  "saveLogQueryAPI": "http://c220g1-031118.wisc.cloudlab.us:5050/save_logs",
-  "saveAudioQueryAPI": "http://c220g1-031118.wisc.cloudlab.us:5050/save_audio",
+  "baseAPIEndpoint": "https://c220g1-031118.wisc.cloudlab.us:5050/",
+  "getQueryAPI": "https://c220g1-031118.wisc.cloudlab.us:5050/experiment_query",
+  "checkQueryAPI": "https://c220g1-031118.wisc.cloudlab.us:5050/check_correctness",
+  "saveLogQueryAPI": "https://c220g1-031118.wisc.cloudlab.us:5050/save_logs",
+  "saveAudioQueryAPI": "https://c220g1-031118.wisc.cloudlab.us:5050/save_audio",
 }
