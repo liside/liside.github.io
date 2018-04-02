@@ -1,0 +1,1 @@
+- Modify config in config.js accordingly.
