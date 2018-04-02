@@ -272,6 +272,11 @@ $( document ).ready(() => {
   };
 
   $( "#record-button" ).on("click", () => {
+    if (recognizing == true) {
+      recognizing = false;
+    } else {
+      recognizing = true;
+    }
     $( "#record-button" ).toggleClass("btn-success");
     $( "#record-button" ).toggleClass("btn-danger");
     if (recognizing) {
