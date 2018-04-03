@@ -12,8 +12,8 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="style/style.css">
   <link rel="stylesheet" href="style/github-gist.css">
-  <script src="javascript/config.js"></script>
-  <script src="javascript/recorder.js"></script>
+  <!-- <script src="javascript/config.js"></script> -->
+  <!-- <script src="javascript/recorder.js"></script> -->
   <!-- <script src="javascript/controller.js"></script> -->
 </head>
 <body>
@@ -186,18 +186,18 @@ String.prototype.width = (font) => {
 }
 
 $( document ).ready(() => {
-  let recorder = new Recorder({
-    sampleRate: 44100,
-    bitRate: 128,
-    success: function() {
-    },
-    error: function(msg) {
-      alert(msg);
-    },
-    fix: function(msg) {
-      alert(msg);
-    }
-  });
+  // let recorder = new Recorder({
+  //   sampleRate: 44100,
+  //   bitRate: 128,
+  //   success: function() {
+  //   },
+  //   error: function(msg) {
+  //     alert(msg);
+  //   },
+  //   fix: function(msg) {
+  //     alert(msg);
+  //   }
+  // });
   let mode = "s";
   let experimentId = "default";
   let recognizing = false;
@@ -287,21 +287,21 @@ $( document ).ready(() => {
     });
 
     // Save recorded audio
-    recorder.getBlob((blob) => {
-      let fd = new FormData();
-      fd.append("data", blob);
-      fd.append("experimentId", experimentId);
-      fd.append("fileName", counter + "-" + currentRecordTry + ".mp3");
-      $.ajax({
-        type: 'POST',
-        url: experimentConfig["saveAudioQueryAPI"],
-        data: fd,
-        processData: false,
-        contentType: false
-      }).done((data) => {
-
-      });
-    });
+    // recorder.getBlob((blob) => {
+    //   let fd = new FormData();
+    //   fd.append("data", blob);
+    //   fd.append("experimentId", experimentId);
+    //   fd.append("fileName", counter + "-" + currentRecordTry + ".mp3");
+    //   $.ajax({
+    //     type: 'POST',
+    //     url: experimentConfig["saveAudioQueryAPI"],
+    //     data: fd,
+    //     processData: false,
+    //     contentType: false
+    //   }).done((data) => {
+    //
+    //   });
+    // });
 
     currentRecordTry += 1;
   };
@@ -456,7 +456,7 @@ $( document ).ready(() => {
       }
       logs[counter]["events"].push(parseLog("stopped recording"));
       recognition.stop();
-      recorder.stop();
+      // recorder.stop();
       $( "#record-button" ).text("Record")
       recognizing = false;
     } else {
@@ -467,7 +467,7 @@ $( document ).ready(() => {
           audio[i].pause();
         }
       }
-      recorder.start();
+      // recorder.start();
       recognition.start();
       $( "#record-button" ).text("Listening....");
       recognizing = true;
