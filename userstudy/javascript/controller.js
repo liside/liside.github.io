@@ -205,16 +205,8 @@ $( document ).ready(() => {
     $( "#result-text" ).val( data["content"].join(" "));
   };
 
-  recognition.onstart = function() {
-    recognizing = true;
-  };
-
   recognition.onerror = function(event) {
     logs[counter]["events"].push(parseLog("ASR error"));
-  };
-
-  recognition.onend = function() {
-    recognizing = false;
   };
 
   recognition.onresult = function(event) {
@@ -242,7 +234,6 @@ $( document ).ready(() => {
     }).done((data) => {
       logs[counter]["events"].push(parseLog("Received final request", data));
       currentResult = data;
-      console.log(data);
       let radioButton = "<div class='btn-group btn-group-toggle' data-toggle='buttons'>";
       for(let i = 0; i < currentResult.length; i++) {
         radioButton += "<label class='btn btn-secondary structures' id='structure-" + i + "'>";
@@ -286,6 +277,7 @@ $( document ).ready(() => {
       recognition.stop();
       // recorder.stop();
       $( "#record-button" ).text("Record")
+      recognizing = false;
     } else {
       logs[counter]["events"].push(parseLog("started recording"));
       let audio = document.querySelectorAll('audio');
@@ -297,6 +289,7 @@ $( document ).ready(() => {
       // recorder.start();
       recognition.start();
       $( "#record-button" ).text("Listening....")
+      recognizing = true;
     }
   });
 
