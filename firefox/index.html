@@ -235,6 +235,78 @@ $( document ).ready(() => {
   // var speechRecognitionList = new webkitSpeechGrammarList();
   // speechRecognitionList.addFromString(grammar, 1.0);
   // recognition.grammars = speechRecognitionList;
+
+  // recognition.onstart = function() {
+  //   recognizing = true;
+  // };
+
+  recognition.onerror = (event) => {
+    console.log(event);
+    logs[counter]["events"].push(parseLog("ASR error"));
+  };
+
+  // recognition.onend = function() {
+  //   recognizing = false;
+  // };
+
+  recognition.onresult = (event) => {
+    let asrResult = [];
+    let index = 0;
+    let maxConf = -1;
+    for (let i = 0; i < event.results[0].length; i++) {
+      asrResult.push([event.results[0][i]['transcript'], event.results[0][i]['confidence']])
+      if (event.results[0][i]['confidence'] > maxConf) {
+        maxConf = event.results[0][i]['confidence'];
+        index = i;
+      }
+    }
+    logs[counter]["events"].push(parseLog("ASR result", asrResult));
+
+    // Send the request to server
+    $.ajax({
+      method: "POST",
+      url: experimentConfig["getQueryAPI"],
+      data: JSON.stringify(asrResult),
+      contentType: 'application/json',
+      success: (xhr) => {
+        logs[counter]["events"].push(parseLog("Sent ASR result", counter + "-" + currentRecordTry + ".mp3"));
+      }
+    }).done((data) => {
+      logs[counter]["events"].push(parseLog("Received final request", data));
+      currentResult = data;
+      console.log(data);
+      let radioButton = "<div class='btn-group btn-group-toggle' data-toggle='buttons'>";
+      for(let i = 0; i < currentResult.length; i++) {
+        radioButton += "<label class='btn btn-secondary structures' id='structure-" + i + "'>";
+        radioButton += "<input type='radio' name='options' autocomplete='off'> " + i + " </label>"
+      }
+      radioButton += "</div>";
+      $( "#structure-control" ).empty();
+      $( "#structure-control" ).append(radioButton);
+      $( "#structure-0" ).addClass('active');
+      propDropdown(currentResult[0]);
+    });
+
+    // Save recorded audio
+    recorder.getBlob((blob) => {
+      let fd = new FormData();
+      fd.append("data", blob);
+      fd.append("experimentId", experimentId);
+      fd.append("fileName", counter + "-" + currentRecordTry + ".mp3");
+      $.ajax({
+        type: 'POST',
+        url: experimentConfig["saveAudioQueryAPI"],
+        data: fd,
+        processData: false,
+        contentType: false
+      }).done((data) => {
+
+      });
+    });
+
+    currentRecordTry += 1;
+  };
+  
   let searchLog = (logs, pattern) => {
       for (let log of logs) {
         if (log["event"].includes(pattern)) {
@@ -374,77 +446,6 @@ $( document ).ready(() => {
     display += '</div></div>';
     $('#query-result').append(display);
     $( "#result-text" ).val( data["content"].join(" "));
-  };
-
-  // recognition.onstart = function() {
-  //   recognizing = true;
-  // };
-
-  recognition.onerror = (event) => {
-    console.log(event);
-    logs[counter]["events"].push(parseLog("ASR error"));
-  };
-
-  // recognition.onend = function() {
-  //   recognizing = false;
-  // };
-
-  recognition.onresult = (event) => {
-    let asrResult = [];
-    let index = 0;
-    let maxConf = -1;
-    for (let i = 0; i < event.results[0].length; i++) {
-      asrResult.push([event.results[0][i]['transcript'], event.results[0][i]['confidence']])
-      if (event.results[0][i]['confidence'] > maxConf) {
-        maxConf = event.results[0][i]['confidence'];
-        index = i;
-      }
-    }
-    logs[counter]["events"].push(parseLog("ASR result", asrResult));
-
-    // Send the request to server
-    $.ajax({
-      method: "POST",
-      url: experimentConfig["getQueryAPI"],
-      data: JSON.stringify(asrResult),
-      contentType: 'application/json',
-      success: (xhr) => {
-        logs[counter]["events"].push(parseLog("Sent ASR result", counter + "-" + currentRecordTry + ".mp3"));
-      }
-    }).done((data) => {
-      logs[counter]["events"].push(parseLog("Received final request", data));
-      currentResult = data;
-      console.log(data);
-      let radioButton = "<div class='btn-group btn-group-toggle' data-toggle='buttons'>";
-      for(let i = 0; i < currentResult.length; i++) {
-        radioButton += "<label class='btn btn-secondary structures' id='structure-" + i + "'>";
-        radioButton += "<input type='radio' name='options' autocomplete='off'> " + i + " </label>"
-      }
-      radioButton += "</div>";
-      $( "#structure-control" ).empty();
-      $( "#structure-control" ).append(radioButton);
-      $( "#structure-0" ).addClass('active');
-      propDropdown(currentResult[0]);
-    });
-
-    // Save recorded audio
-    recorder.getBlob((blob) => {
-      let fd = new FormData();
-      fd.append("data", blob);
-      fd.append("experimentId", experimentId);
-      fd.append("fileName", counter + "-" + currentRecordTry + ".mp3");
-      $.ajax({
-        type: 'POST',
-        url: experimentConfig["saveAudioQueryAPI"],
-        data: fd,
-        processData: false,
-        contentType: false
-      }).done((data) => {
-
-      });
-    });
-
-    currentRecordTry += 1;
   };
 
   $( "#record-button" ).on("click", () => {
