@@ -27,7 +27,7 @@ $( document ).ready(() => {
   let mode = "s";
   let experimentId = "default";
   let recognizing = false;
-  let recognition = new webkitSpeechRecognition();
+  // let recognition = new webkitSpeechRecognition();
   let logs = {};
   let counter = 0;
   let currentQueryFinished = false;
@@ -52,10 +52,6 @@ $( document ).ready(() => {
                   }}];
   let firstSpeakIndex = 0;
 
-  recognition.continuous = true;
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 5;
-  recognition.lang = 'en-US';
   // var grammar = '#JSGF V1.0; grammar commands; public <command> = sum'
   // var speechRecognitionList = new webkitSpeechGrammarList();
   // speechRecognitionList.addFromString(grammar, 1.0);
