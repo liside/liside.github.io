@@ -27,13 +27,14 @@ $( document ).ready(() => {
   let mode = "s";
   let experimentId = "default";
   let recognizing = false;
-  // let recognition = new webkitSpeechRecognition();
+  let recognition = new webkitSpeechRecognition();
   let logs = {};
   let counter = 0;
   let currentQueryFinished = false;
   let currentRecordTry = 0;
   let currentCheckTry = 0;
   let writtenUnlocked = false;
+  let round = 1;
   let currentResult =
                 [{'content': ['select', 'employee_names', 'from', 'catalog'],
                   'position': {
@@ -52,6 +53,10 @@ $( document ).ready(() => {
                   }}];
   let firstSpeakIndex = 0;
 
+  recognition.continuous = true;
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 5;
+  recognition.lang = 'en-US';
   // var grammar = '#JSGF V1.0; grammar commands; public <command> = sum'
   // var speechRecognitionList = new webkitSpeechGrammarList();
   // speechRecognitionList.addFromString(grammar, 1.0);
@@ -92,7 +97,9 @@ $( document ).ready(() => {
       "speakql_time": (mode == "s") ? end - speakStart : 0,
       "num_of_speaking": currentRecordTry,
       "num_of_correctness_check": currentCheckTry,
-      "units_of_efforts": countLog(logs[counter]["events"], "clicked")
+      "units_of_efforts": countLog(logs[counter]["events"], "clicked"),
+      "num_of_key_strokes": logs[counter]["keyup"].length,
+      "query_id": counter
     };
 
     // Save logs to the server
@@ -106,6 +113,12 @@ $( document ).ready(() => {
     });
 
     counter += 1;
+    if (counter == experimentConfig["numOfQueries"] && round <= 2) {
+      counter = 0;
+      round += 1;
+      mode = mode == "w" ? "s" : "w";
+    }
+
     if (counter < experimentConfig["numOfQueries"]) {
       logs[counter] = {
         "events": [],
@@ -140,17 +153,12 @@ $( document ).ready(() => {
       }
     } else {
         logs["meta_timestamp"].push(parseLog("Finished the experiment"));
-        // $("#result-text").val(data);
-        // TODO: when it's done.
         window.location.href = "thankyou.html";
     }
   }
 
   let propSQL = (query) => {
     $(".SQL").text(query);
-    // $("pre code").each(function(i, block) {
-    //   hljs.highlightBlock(block);
-    // });
   };
 
   let propDropdown = (data) => {
@@ -234,7 +242,7 @@ $( document ).ready(() => {
     }).done((data) => {
       logs[counter]["events"].push(parseLog("Received final request", data));
       currentResult = data;
-      // console.log(data);
+      console.log(data);
       let radioButton = "<div class='btn-group btn-group-toggle' data-toggle='buttons'>";
       for(let i = 0; i < currentResult.length; i++) {
         radioButton += "<label class='btn btn-secondary structures' id='structure-" + i + "'>";
@@ -278,7 +286,6 @@ $( document ).ready(() => {
       recognition.stop();
       // recorder.stop();
       $( "#record-button" ).text("Record")
-      // recognizing = false;
     } else {
       logs[counter]["events"].push(parseLog("started recording"));
       let audio = document.querySelectorAll('audio');
@@ -289,8 +296,7 @@ $( document ).ready(() => {
       }
       // recorder.start();
       recognition.start();
-      $( "#record-button" ).text("Listening....");
-      // recognizing = true;
+      $( "#record-button" ).text("Listening....")
     }
   });
 
@@ -386,7 +392,7 @@ $( document ).ready(() => {
 
   $("#result-text").on("keyup", () => {
   // $("#result-text").on("change", () => {
-    logs[counter]["keyup"].push(parseLog("modified sql in written mode", $("#result-text").val()))
+    logs[counter]["keyup"].push(parseLog("modified sql by typing", $("#result-text").val()))
   });
 
   $( "#unlock-button" ).on("click", () => {

@@ -15,6 +15,11 @@ experimentConfig = {
       "description": "what are the fromdates of the employees who are working in department with departmentnumber = d002. fetch only the first 4 records.",
       "answer": "SELECT FromDate FROM DepartmentEmployee WHERE DepartmentNumber = 'd002' LIMIT 4",
       "complexity": "simple"
+    },
+    {
+      "description": "what is the firstname, lastname and hiredate of all the employees.",
+      "answer": "SELECT FirstName , LastName , HireDate FROM Employees",
+      "complexity": "simple"
     }
   ],
   "baseAPIEndpoint": "https://c220g1-031118.wisc.cloudlab.us/",
