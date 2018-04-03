@@ -12,18 +12,18 @@ String.prototype.width = (font) => {
 }
 
 $( document ).ready(() => {
-  let recorder = new Recorder({
-    sampleRate: 44100,
-    bitRate: 128,
-    success: function() {
-    },
-    error: function(msg) {
-      alert(msg);
-    },
-    fix: function(msg) {
-      alert(msg);
-    }
-  });
+  // let recorder = new Recorder({
+  //   sampleRate: 44100,
+  //   bitRate: 128,
+  //   success: function() {
+  //   },
+  //   error: function(msg) {
+  //     alert(msg);
+  //   },
+  //   fix: function(msg) {
+  //     alert(msg);
+  //   }
+  // });
   let mode = "s";
   let experimentId = "default";
   let recognizing = false;
@@ -197,17 +197,17 @@ $( document ).ready(() => {
     $( "#result-text" ).val( data["content"].join(" "));
   };
 
-  // recognition.onstart = function() {
-  //   recognizing = true;
-  // };
+  recognition.onstart = function() {
+    recognizing = true;
+  };
 
   recognition.onerror = function(event) {
     logs[counter]["events"].push(parseLog("ASR error"));
   };
 
-  // recognition.onend = function() {
-  //   recognizing = false;
-  // };
+  recognition.onend = function() {
+    recognizing = false;
+  };
 
   recognition.onresult = function(event) {
     let asrResult = [];
@@ -234,7 +234,7 @@ $( document ).ready(() => {
     }).done((data) => {
       logs[counter]["events"].push(parseLog("Received final request", data));
       currentResult = data;
-      console.log(data);
+      // console.log(data);
       let radioButton = "<div class='btn-group btn-group-toggle' data-toggle='buttons'>";
       for(let i = 0; i < currentResult.length; i++) {
         radioButton += "<label class='btn btn-secondary structures' id='structure-" + i + "'>";
@@ -248,21 +248,21 @@ $( document ).ready(() => {
     });
 
     // Save recorded audio
-    recorder.getBlob((blob) => {
-      let fd = new FormData();
-      fd.append("data", blob);
-      fd.append("experimentId", experimentId);
-      fd.append("fileName", counter + "-" + currentRecordTry + ".mp3");
-      $.ajax({
-        type: 'POST',
-        url: experimentConfig["saveAudioQueryAPI"],
-        data: fd,
-        processData: false,
-        contentType: false
-      }).done((data) => {
-
-      });
-    });
+    // recorder.getBlob((blob) => {
+    //   let fd = new FormData();
+    //   fd.append("data", blob);
+    //   fd.append("experimentId", experimentId);
+    //   fd.append("fileName", counter + "-" + currentRecordTry + ".mp3");
+    //   $.ajax({
+    //     type: 'POST',
+    //     url: experimentConfig["saveAudioQueryAPI"],
+    //     data: fd,
+    //     processData: false,
+    //     contentType: false
+    //   }).done((data) => {
+    //
+    //   });
+    // });
 
     currentRecordTry += 1;
   };
@@ -276,9 +276,9 @@ $( document ).ready(() => {
       }
       logs[counter]["events"].push(parseLog("stopped recording"));
       recognition.stop();
-      recorder.stop();
+      // recorder.stop();
       $( "#record-button" ).text("Record")
-      recognizing = false;
+      // recognizing = false;
     } else {
       logs[counter]["events"].push(parseLog("started recording"));
       let audio = document.querySelectorAll('audio');
@@ -287,10 +287,10 @@ $( document ).ready(() => {
           audio[i].pause();
         }
       }
-      recorder.start();
+      // recorder.start();
       recognition.start();
       $( "#record-button" ).text("Listening....");
-      recognizing = true;
+      // recognizing = true;
     }
   });
 
