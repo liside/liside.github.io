@@ -51,7 +51,6 @@ $( document ).ready(() => {
                     1: ['employee_names', 'employees', 'employers'],
                     3: ['catalog', 'phonetool']
                   }}];
-  let firstSpeakIndex = 0;
 
   recognition.continuous = true;
   recognition.interimResults = false;
@@ -64,6 +63,14 @@ $( document ).ready(() => {
   let searchLog = (logs, pattern) => {
       for (let log of logs) {
         if (log["event"].includes(pattern)) {
+          return new Date(log["timestamp"]);
+        }
+      }
+  };
+
+  let searchLogWithData = (logs, pattern, data) => {
+      for (let log of logs) {
+        if (log["event"].includes(pattern) && log["data"] == data) {
           return new Date(log["timestamp"]);
         }
       }
@@ -84,22 +91,28 @@ $( document ).ready(() => {
   };
 
   let nextQuery = () => {
-    logs["meta_timestamp"].push(parseLog("completed query " + counter));
+    logs["meta_timestamp"].push(parseLog("Finished query " + counter));
+    const reversedEvents= logs[counter]["events"].slice().reverse();
 
-    // save meta data
-    start = new Date(logs[counter]["events"][0]["timestamp"]);
-    end = searchLog(logs["meta_timestamp"], "completed query " + counter);
-    speakStart = new Date(logs[counter]["events"][firstSpeakIndex]["timestamp"]);
+    start = mode == "s" ?
+            searchLog(logs[counter]["events"], "Started recording") :
+            new Date(logs[counter]["keyup"][0]["timestamp"]);
+    speakStart = searchLog(reversedEvents, "Stopped recording");
+    end = searchLogWithData(reversedEvents, "Received correctness result", true)
+    thinkStart = searchLog(logs["meta_timestamp"], "Started query " + counter);
+
     logs[counter]["metadata"] = {
       "mode": (mode == "s") ? "speak" : "type",
       "complexity": experimentConfig["queries"][counter]["complexity"],
+      "think_time": start - thinkStart,
       "end_to_end_time": end - start,
       "speakql_time": (mode == "s") ? end - speakStart : 0,
       "num_of_speaking": currentRecordTry,
       "num_of_correctness_check": currentCheckTry,
-      "units_of_efforts": countLog(logs[counter]["events"], "clicked"),
+      "units_of_efforts": countLog(logs[counter]["events"], "Clicked"),
       "num_of_key_strokes": logs[counter]["keyup"].length,
-      "query_id": counter
+      "query_id": experimentConfig["queries"][counter]["id"],
+      "completed": currentQueryFinished
     };
 
     // Save logs to the server
@@ -113,11 +126,11 @@ $( document ).ready(() => {
     });
 
     counter += 1;
-    if (counter == experimentConfig["numOfQueries"] && round <= 2) {
-      counter = 0;
-      round += 1;
-      mode = mode == "w" ? "s" : "w";
-    }
+    // if (counter == experimentConfig["numOfQueries"] && round <= 2) {
+    //   counter = 0;
+    //   round += 1;
+    //   mode = mode == "w" ? "s" : "w";
+    // }
 
     if (counter < experimentConfig["numOfQueries"]) {
       logs[counter] = {
@@ -126,7 +139,6 @@ $( document ).ready(() => {
       };
 
       // reset local config
-      firstSpeakIndex = 0;
       currentQueryFinished = false;
       currentRecordTry = 0;
       currentCheckTry = 0;
@@ -136,9 +148,9 @@ $( document ).ready(() => {
       $( "#result-status" ).text("");
       $( "#result-text" ).val("");
       $( "#InterimModal" ).modal("toggle");
-      $( "#InterimModalLongTitle" ).text("Ready for query " + counter);
+      $( "#InterimModalLongTitle" ).text("Ready for query " + experimentConfig["queries"][counter]["id"] + "?");
 
-      if (mode == "w") {
+      if (experimentConfig["queries"][counter]["mode"] == "speak") {
         mode = "s";
         $( "#switch-mode" ).text(mode)
         $( "#record-block" ).show();
@@ -162,14 +174,6 @@ $( document ).ready(() => {
   };
 
   let propDropdown = (data) => {
-    // TODO: fake data
-    // comment out when backend is done
-    // data = {'content': ['select', 'employee_names', 'from', 'catalog'],
-    //                 'position': {
-    //                   1: ['employee_names', 'employees', 'employers'],
-    //                   3: ['catalog', 'phonetool']
-    //                 }};
-
     currentQuery = data;
     $('#query-result').empty();
     $( "#result-text" ).prop("readonly", true);
@@ -232,18 +236,23 @@ $( document ).ready(() => {
         logs[counter]["events"].push(parseLog("Sent ASR result", counter + "-" + currentRecordTry + ".mp3"));
       }
     }).done((data) => {
-      logs[counter]["events"].push(parseLog("Received final request", data));
-      currentResult = data;
-      let radioButton = "<div class='btn-group btn-group-toggle' data-toggle='buttons'>";
-      for(let i = 0; i < currentResult.length; i++) {
-        radioButton += "<label class='btn btn-secondary structures' id='structure-" + i + "'>";
-        radioButton += "<input type='radio' name='options' autocomplete='off'> " + i + " </label>"
+      if (recognizing) {
+        logs[counter]["events"].push(parseLog("Received final request but abandoned", data));
+      } else {
+        logs[counter]["events"].push(parseLog("Received final request", data));
+
+        currentResult = data;
+        let radioButton = "<div class='btn-group btn-group-toggle' data-toggle='buttons'>";
+        for(let i = 0; i < currentResult.length; i++) {
+          radioButton += "<label class='btn btn-secondary structures' id='structure-" + i + "'>";
+          radioButton += "<input type='radio' name='options' autocomplete='off'> " + i + " </label>"
+        }
+        radioButton += "</div>";
+        $( "#structure-control" ).empty();
+        $( "#structure-control" ).append(radioButton);
+        $( "#structure-0" ).addClass('active');
+        propDropdown(currentResult[0]);
       }
-      radioButton += "</div>";
-      $( "#structure-control" ).empty();
-      $( "#structure-control" ).append(radioButton);
-      $( "#structure-0" ).addClass('active');
-      propDropdown(currentResult[0]);
     });
 
     // Save recorded audio
@@ -270,16 +279,13 @@ $( document ).ready(() => {
     $( "#record-button" ).toggleClass("btn-success");
     $( "#record-button" ).toggleClass("btn-danger");
     if (recognizing) {
-      if (currentRecordTry == 0) {
-        firstSpeakIndex = logs[counter]["events"].length;
-      }
-      logs[counter]["events"].push(parseLog("stopped recording"));
+      logs[counter]["events"].push(parseLog("Stopped recording"));
       recognition.stop();
       // recorder.stop();
       $( "#record-button" ).text("Record")
       recognizing = false;
     } else {
-      logs[counter]["events"].push(parseLog("started recording"));
+      logs[counter]["events"].push(parseLog("Started recording"));
       let audio = document.querySelectorAll('audio');
       for (var i = 0; i < audio.length; i++) {
         if (!audio[i].paused) {
@@ -288,7 +294,7 @@ $( document ).ready(() => {
       }
       // recorder.start();
       recognition.start();
-      $( "#record-button" ).text("Listening....")
+      $( "#record-button" ).text("Press here to stop")
       recognizing = true;
     }
   });
@@ -318,21 +324,22 @@ $( document ).ready(() => {
     };
     experimentId = $( "#experiment-id" ).val();
     logs["experimentId"] = experimentId;
-    logs["meta_timestamp"] = [parseLog("started a new experiment")];
+    logs["meta_timestamp"] = [parseLog("Started a new experiment")];
 
     $("#instructions").hide();
     $("#experiments").show();
     $( "#InterimModal" ).modal("toggle");
-    $( "#InterimModalLongTitle" ).text("Ready for query " + counter + "?");
+    $( "#InterimModalLongTitle" ).text("Ready for query " + experimentConfig["queries"][counter]["id"] + "?");
   });
 
   $( "#start-query" ).on("click", () => {
     propSQL(experimentConfig["queries"][counter]["description"]);
-    logs["meta_timestamp"].push(parseLog("started query " + counter));
+    logs["meta_timestamp"].push(parseLog("Started query " + counter));
+    logs[counter]["events"].push(parseLog("Started query " + counter));
   })
 
   $( "#check-button" ).on("click", () => {
-    logs[counter]["events"].push(parseLog("clicked check"));
+    logs[counter]["events"].push(parseLog("Clicked check"));
     currentCheckTry += 1;
     let result = $( "#result-text" ).val();
 
@@ -362,7 +369,7 @@ $( document ).ready(() => {
   });
 
   $( "#submit-button" ).on("click", () => {
-    logs[counter]["events"].push(parseLog("clicked submit"));
+    logs[counter]["events"].push(parseLog("Clicked next"));
 
     if (currentQueryFinished) {
       nextQuery();
@@ -372,12 +379,12 @@ $( document ).ready(() => {
   });
 
   $( "#skip-button" ).on("click", () => {
-    logs[counter]["events"].push(parseLog("clicked to skip to next query"));
+    logs[counter]["events"].push(parseLog("Clicked to skip to next query"));
     nextQuery();
   });
 
   $( "#result-text" ).on("click", () => {
-    logs[counter]["events"].push(parseLog("clicked textarea"));
+    logs[counter]["events"].push(parseLog("Clicked textarea"));
     if (!writtenUnlocked && mode != "w") {
       $( "#writtenConfirmModal" ).modal("toggle");
     }
@@ -397,23 +404,23 @@ $( document ).ready(() => {
 
   $( document ).on("click", ".structures", function() {
     let id = parseInt($(this).attr("id").split("-")[1]);
-    logs[counter]["events"].push(parseLog("clicked to change query structure " + id));
+    logs[counter]["events"].push(parseLog("Clicked to change query structure " + id));
     propDropdown(currentResult[id]);
   });
 
   $( document ).on("click", ".dropdown-toggle", ()=> {
-    logs[counter]["events"].push(parseLog("clicked dropdown to show literal options"));
+    logs[counter]["events"].push(parseLog("Clicked dropdown to show literal options"));
   });
 
   $( document ).on("click", ".dropdown-menu", ()=> {
-    logs[counter]["events"].push(parseLog("clicked to change literal"));
+    logs[counter]["events"].push(parseLog("Clicked to change literal"));
   });
 
   $( document ).on("click", ".dropdown-item", function(){
     let id = $(this).attr("id").split("-").slice(1, 3).map(x => parseInt(x));
     let result = currentQuery["content"].slice();
     result[id[0]] = currentQuery["position"][id[0]][id[1]];
-    logs[counter]["events"].push(parseLog("clicked item in dropdown",
+    logs[counter]["events"].push(parseLog("Clicked item in dropdown",
       {"selected": currentQuery["position"][id[0]][id[1]],
        "result": result.join(" ")}));
 
