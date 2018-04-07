@@ -97,7 +97,7 @@ $( document ).ready(() => {
 
     start = mode == "s" ?
             searchLog(logs[counter]["events"], "Started recording") :
-            new Date(logs[counter]["keyup"][0]["timestamp"]);
+            (logs[counter]["keyup"][0] ? new Date(logs[counter]["keyup"][0]["timestamp"]) : undefined);
     speakStart = searchLog(reversedEvents, "Stopped recording");
     end = searchLogWithData(reversedEvents, "Received correctness result", true)
     thinkStart = searchLog(logs["meta_timestamp"], "Started query " + counter);
@@ -140,6 +140,7 @@ $( document ).ready(() => {
       };
 
       // reset local config
+      recognizing = false;
       currentQueryFinished = false;
       currentRecordTry = 0;
       currentCheckTry = 0;
@@ -222,6 +223,7 @@ $( document ).ready(() => {
     if (recognizing == true) {
       this.start();
     } else {
+      $('#query-result').html("<h1>Wait for the result to get loaded<h1>");
       logs[counter]["events"].push(parseLog("ASR result", asrResult));
       // Send the request to server
       $.ajax({
