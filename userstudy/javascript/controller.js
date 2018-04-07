@@ -159,7 +159,7 @@ $( document ).ready(() => {
         $( "#result-text" ).prop("readonly", true);
         writtenUnlocked = false;
       } else {
-        mode = "w";
+        mode = "t";
         $( "#switch-mode" ).text(mode);
         $( "#result-text" ).prop("readonly", false);
         $( "#record-block" ).hide();
@@ -347,20 +347,20 @@ $( document ).ready(() => {
     }
   });
 
-  // Listener on switch mode
-  $( "#switch-mode" ).on( "click", () => {
-    if (mode == "w") {
-      mode = "s";
-      $( "#switch-mode" ).text(mode)
-      $( "#record-block" ).show();
-      $( "#result-text" ).prop("readonly", true);
-    } else {
-      mode = "w";
-      $( "#switch-mode" ).text(mode);
-      $( "#result-text" ).prop("readonly", false);
-      $( "#record-block" ).hide();
-    }
-  });
+  // // Listener on switch mode
+  // $( "#switch-mode" ).on( "click", () => {
+  //   if (mode == "w") {
+  //     mode = "s";
+  //     $( "#switch-mode" ).text(mode)
+  //     $( "#record-block" ).show();
+  //     $( "#result-text" ).prop("readonly", true);
+  //   } else {
+  //     mode = "w";
+  //     $( "#switch-mode" ).text(mode);
+  //     $( "#result-text" ).prop("readonly", false);
+  //     $( "#record-block" ).hide();
+  //   }
+  // });
 
   // listener on start button on intro page
   $( "#start-experiment" ).on("click", () => {
