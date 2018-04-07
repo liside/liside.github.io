@@ -24,6 +24,7 @@ $( document ).ready(() => {
   //     alert(msg);
   //   }
   // });
+  let asrResult = "";
   let mode = "s";
   let experimentId = "default";
   let recognizing = false;
@@ -52,7 +53,7 @@ $( document ).ready(() => {
                     3: ['catalog', 'phonetool']
                   }}];
 
-  recognition.continuous = true;
+  recognition.continuous = false;
   recognition.interimResults = false;
   recognition.maxAlternatives = 5;
   recognition.lang = 'en-US';
@@ -213,48 +214,92 @@ $( document ).ready(() => {
     logs[counter]["events"].push(parseLog("ASR error"));
   };
 
+  recognition.onaudioend = function() {
+    this.stop();
+  }
+
+  recognition.onend = function() {
+    if (recognizing == true) {
+      this.start();
+    } else {
+      logs[counter]["events"].push(parseLog("ASR result", asrResult));
+      // Send the request to server
+      $.ajax({
+        method: "POST",
+        url: experimentConfig["getQueryAPI"],
+        data: JSON.stringify(asrResult),
+        contentType: 'application/json',
+        success: (xhr) => {
+          logs[counter]["events"].push(parseLog("Sent ASR result", counter + "-" + currentRecordTry + ".mp3"));
+        }
+      }).done((data) => {
+        if (recognizing) {
+          logs[counter]["events"].push(parseLog("Received final request but abandoned", data));
+        } else {
+          logs[counter]["events"].push(parseLog("Received final request", data));
+
+          currentResult = data;
+          let radioButton = "<div class='btn-group btn-group-toggle' data-toggle='buttons'>";
+          for(let i = 0; i < currentResult.length; i++) {
+            radioButton += "<label class='btn btn-secondary structures' id='structure-" + i + "'>";
+            radioButton += "<input type='radio' name='options' autocomplete='off'> " + i + " </label>"
+          }
+          radioButton += "</div>";
+          $( "#structure-control" ).empty();
+          $( "#structure-control" ).append(radioButton);
+          $( "#structure-0" ).addClass('active');
+          propDropdown(currentResult[0]);
+        }
+      });
+
+      currentRecordTry += 1;
+    }
+  }
+
   recognition.onresult = function(event) {
-    let asrResult = [];
+    // let asrResult = [];
     let index = 0;
     let maxConf = -1;
     for (let i = 0; i < event.results[0].length; i++) {
-      asrResult.push([event.results[0][i]['transcript'], event.results[0][i]['confidence']])
+      // asrResult.push([event.results[0][i]['transcript'], event.results[0][i]['confidence']])
       if (event.results[0][i]['confidence'] > maxConf) {
         maxConf = event.results[0][i]['confidence'];
         index = i;
       }
     }
-    logs[counter]["events"].push(parseLog("ASR result", asrResult));
+    asrResult += event.results[0][index]['transcript'] + " ";
+    // logs[counter]["events"].push(parseLog("ASR result", asrResult));
+    // recognition.abort();
 
     // Send the request to server
-    $.ajax({
-      method: "POST",
-      url: experimentConfig["getQueryAPI"],
-      data: JSON.stringify(asrResult),
-      contentType: 'application/json',
-      success: (xhr) => {
-        logs[counter]["events"].push(parseLog("Sent ASR result", counter + "-" + currentRecordTry + ".mp3"));
-      }
-    }).done((data) => {
-      if (recognizing) {
-        logs[counter]["events"].push(parseLog("Received final request but abandoned", data));
-      } else {
-        logs[counter]["events"].push(parseLog("Received final request", data));
-
-        currentResult = data;
-        let radioButton = "<div class='btn-group btn-group-toggle' data-toggle='buttons'>";
-        for(let i = 0; i < currentResult.length; i++) {
-          radioButton += "<label class='btn btn-secondary structures' id='structure-" + i + "'>";
-          radioButton += "<input type='radio' name='options' autocomplete='off'> " + i + " </label>"
-        }
-        radioButton += "</div>";
-        $( "#structure-control" ).empty();
-        $( "#structure-control" ).append(radioButton);
-        $( "#structure-0" ).addClass('active');
-        propDropdown(currentResult[0]);
-      }
-    });
-
+    // $.ajax({
+    //   method: "POST",
+    //   url: experimentConfig["getQueryAPI"],
+    //   data: JSON.stringify(asrResult),
+    //   contentType: 'application/json',
+    //   success: (xhr) => {
+    //     logs[counter]["events"].push(parseLog("Sent ASR result", counter + "-" + currentRecordTry + ".mp3"));
+    //   }
+    // }).done((data) => {
+    //   if (recognizing) {
+    //     logs[counter]["events"].push(parseLog("Received final request but abandoned", data));
+    //   } else {
+    //     logs[counter]["events"].push(parseLog("Received final request", data));
+    //
+    //     currentResult = data;
+    //     let radioButton = "<div class='btn-group btn-group-toggle' data-toggle='buttons'>";
+    //     for(let i = 0; i < currentResult.length; i++) {
+    //       radioButton += "<label class='btn btn-secondary structures' id='structure-" + i + "'>";
+    //       radioButton += "<input type='radio' name='options' autocomplete='off'> " + i + " </label>"
+    //     }
+    //     radioButton += "</div>";
+    //     $( "#structure-control" ).empty();
+    //     $( "#structure-control" ).append(radioButton);
+    //     $( "#structure-0" ).addClass('active');
+    //     propDropdown(currentResult[0]);
+    //   }
+    // });
+    //     recognition.start();
     // Save recorded audio
     // recorder.getBlob((blob) => {
     //   let fd = new FormData();
@@ -272,30 +317,31 @@ $( document ).ready(() => {
     //   });
     // });
 
-    currentRecordTry += 1;
+    // currentRecordTry += 1;
   };
 
   $( "#record-button" ).on("click", () => {
     $( "#record-button" ).toggleClass("btn-success");
     $( "#record-button" ).toggleClass("btn-danger");
     if (recognizing) {
+      recognizing = false;
       logs[counter]["events"].push(parseLog("Stopped recording"));
       recognition.stop();
       // recorder.stop();
       $( "#record-button" ).text("Record")
-      recognizing = false;
     } else {
+      recognizing = true;
       logs[counter]["events"].push(parseLog("Started recording"));
-      let audio = document.querySelectorAll('audio');
-      for (var i = 0; i < audio.length; i++) {
-        if (!audio[i].paused) {
-          audio[i].pause();
-        }
-      }
+      // let audio = document.querySelectorAll('audio');
+      // for (var i = 0; i < audio.length; i++) {
+      //   if (!audio[i].paused) {
+      //     audio[i].pause();
+      //   }
+      // }
+      asrResult = "";
       // recorder.start();
       recognition.start();
       $( "#record-button" ).text("Press here to stop")
-      recognizing = true;
     }
   });
 
