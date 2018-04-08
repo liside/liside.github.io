@@ -99,10 +99,10 @@ $( document ).ready(() => {
     const reversedEvents= logs[counter]["events"].slice().reverse();
 
     start = mode == "s" ?
-            searchLog(logs[counter]["events"], "Started recording") :
+            searchLog(logs[counter]["events"], "Clicked to start recording") :
             (logs[counter]["keyup"][0] ? new Date(logs[counter]["keyup"][0]["timestamp"]) : undefined);
-    speakStart = searchLog(reversedEvents, "Stopped recording");
-    end = searchLogWithData(reversedEvents, "Received correctness result", true)
+    speakStart = searchLog(reversedEvents, "Clicked to stop recording");
+    end = searchLogWithData(logs[counter]["events"], "Received correctness result", true)
     thinkStart = searchLog(logs["meta_timestamp"], "Started query " + counter);
 
     logs[counter]["metadata"] = {
@@ -436,7 +436,7 @@ $( document ).ready(() => {
 
   $( "#result-text" ).on("click", () => {
     logs[counter]["events"].push(parseLog("Clicked textarea"));
-    if (!writtenUnlocked && mode != "w") {
+    if (!writtenUnlocked && mode != "t") {
       $( "#writtenConfirmModal" ).modal("toggle");
     }
   });
