@@ -330,13 +330,13 @@ $( document ).ready(() => {
     $( "#record-button" ).toggleClass("btn-danger");
     if (recognizing) {
       recognizing = false;
-      logs[counter]["events"].push(parseLog("Stopped recording"));
+      logs[counter]["events"].push(parseLog("Clicked to stop recording"));
       recognition.stop();
       // recorder.stop();
       $( "#record-button" ).text("Record")
     } else {
       recognizing = true;
-      logs[counter]["events"].push(parseLog("Started recording"));
+      logs[counter]["events"].push(parseLog("Clicked to start recording"));
       // let audio = document.querySelectorAll('audio');
       // for (var i = 0; i < audio.length; i++) {
       //   if (!audio[i].paused) {
