@@ -77,9 +77,12 @@ $( document ).ready(() => {
       }
   };
 
-  let countLog = (logs, pattern) => {
+  let countLogUntilCorrect = (logs, pattern) => {
     let count = 0;
     for (let log of logs) {
+      if (log["event"].includes("Received correctness result") && log["data"] == true) {
+        break;
+      }
       if (log["event"].includes(pattern)) {
         count += 1;
       }
@@ -110,7 +113,7 @@ $( document ).ready(() => {
       "speakql_time": (mode == "s") ? end - speakStart : 0,
       "num_of_speaking": currentRecordTry,
       "num_of_correctness_check": currentCheckTry,
-      "units_of_efforts": countLog(logs[counter]["events"], "Clicked"),
+      "units_of_efforts": countLogUntilCorrect(logs[counter]["events"], "Clicked"),
       "num_of_key_strokes": logs[counter]["keyup"].length,
       "query_id": experimentConfig["queries"][counter]["id"],
       "completed": currentQueryFinished
