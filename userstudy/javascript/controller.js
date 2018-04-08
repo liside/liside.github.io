@@ -343,6 +343,7 @@ $( document ).ready(() => {
       //     audio[i].pause();
       //   }
       // }
+      $('#query-result').empty();
       asrResult = "";
       // recorder.start();
       recognition.start();
