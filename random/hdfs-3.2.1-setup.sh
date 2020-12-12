@@ -6,7 +6,7 @@ tar xvf hadoop-3.2.1.tar.gz
 sudo mv hadoop-3.2.1 /usr/local/hadoop
 sudo adduser --disabled-password -q --gecos "" hdoop
 sudo chown -R hdoop /usr/local/hadoop
-sudo - hdoop
+#sudo su - hdoop
 ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
 cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 chmod 0600 ~/.ssh/authorized_keys
@@ -19,6 +19,15 @@ if test -b /dev/sdb && ! grep -q /dev/sdb /etc/fstab; then
     chmod 755 /mnt
     echo "/dev/sdb	/mnt	ext3	defaults	0	0" >> /etc/fstab
 fi
+
+sudo apt-get install mhddfs
+sudo mkdir /mnt2
+sudo chmod 777 /mnt2
+sudo mke2fs -F -j /dev/sda4
+sudo mount /dev/sda4 /mnt2
+sudo mkdir /tmpfs
+sudo chmod 777 /tmpfs
+mhddfs /mnt,/mnt2 /tmpfs
 
 mkdir /mnt/hadoop
 chmod 1777 /mnt/hadoop
