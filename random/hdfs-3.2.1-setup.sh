@@ -7,10 +7,12 @@ sudo mv hadoop-3.2.1 /usr/local/hadoop
 sudo adduser --disabled-password -q --gecos "" hdoop
 sudo chown -R hdoop /usr/local/hadoop
 #sudo su - hdoop
-ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
-cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
-chmod 0600 ~/.ssh/authorized_keys
+#ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
+#cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+#chmod 0600 ~/.ssh/authorized_keys
+
 echo "export PATH=$PATH:/usr/local/hadoop/bin/" >> .bashrc
+echo "export HADOOP_USER_NAME=hdfs" >> .bashrc
 source .bashrc
 
 if test -b /dev/sdb && ! grep -q /dev/sdb /etc/fstab; then
